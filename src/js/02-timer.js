@@ -6,6 +6,7 @@ import Notiflix from 'notiflix';
 
 const refs = {
    startBtn: document.querySelector('button[data-start]'),
+   stopBtn: document.querySelector('button[data-end]'),
    spanDays: document.querySelector('span[data-days]'),
    spanHours: document.querySelector('span[data-hours]'),
    spanMinutes: document.querySelector('span[data-minutes]'),
@@ -28,6 +29,7 @@ const options = {
                startTime: selectedDates[0].getTime(),
             });
         refs.startBtn.addEventListener('click', timer.start.bind(timer));
+        refs.stopBtn.addEventListener('click', timer.stop.bind(timer));
 
         Notiflix.Notify.success('Таймер Запущено');
         refs.startBtn.disabled = false;
@@ -61,8 +63,9 @@ class Timer {
          const currentTime = Date.now();
          const deltaTime = this.startTime - currentTime;
          if (deltaTime < 0) {
-            clearInterval(this.intervalId);
-            this.isActive = false;
+            // clearInterval(this.intervalId);
+            // this.isActive = false;
+            this.stop();
             return;
          }
          const time = this.convertMs(deltaTime);
@@ -70,12 +73,12 @@ class Timer {
       }, 1000);
    }
 
-   // stop() {
-   //    clearInterval(this.intervalId);
-   //    this.isActive = false;
-   //    const time = this.convertMs(0);
-   //    this.onTick(time);
-   // }
+   stop() {
+      clearInterval(this.intervalId);
+      this.isActive = false;
+      const time = this.convertMs(0);
+      this.onTick(time);
+   }
 
 
 
@@ -102,9 +105,6 @@ class Timer {
       return { days, hours, minutes, seconds };
    }
 }
-
-
-// refs.stopBtn.addEventListener('click', timer.stop.bind(timer));
 
 function updateClockFace({ days, hours, minutes, seconds }) {
    refs.spanDays.textContent = `${days}`;
