@@ -4,42 +4,122 @@ import "flatpickr/dist/flatpickr.min.css";
 import Notiflix from 'notiflix';
 // Додатковий імпорт стилів
 
+const refs = {
+   startBtn: document.querySelector('button[data-start]'),
+   spanDays: document.querySelector('span[data-days]'),
+   spanHours: document.querySelector('span[data-hours]'),
+   spanMinutes: document.querySelector('span[data-minutes]'),
+   spanSeconds: document.querySelector('span[data-seconds]'),
+}
 
-flatpickr('#datetime-picker', {
-   enableTime: true,
-   time_24hr: true,
-   defaultDate: new Date(),
-   minuteIncrement: 1,
-   onClose(selectedDates) {
-      console.log(selectedDates[0]);
-      Notiflix.Notify.success('Hello World');
-   },
-});
+refs.startBtn.disabled = true;
+
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+     if (Date.now() >= selectedDates[0].getTime()) {
+        Notiflix.Notify.failure("Please choose a date in the future");
+     } else {
+            const timer = new Timer({
+               onTick: updateClockFace,
+               startTime: selectedDates[0].getTime(),
+            });
+        refs.startBtn.addEventListener('click', timer.start.bind(timer));
+
+        Notiflix.Notify.success('Таймер Запущено');
+        refs.startBtn.disabled = false;
+     }
+  },
+};
+
+flatpickr('#datetime-picker', options);
+
+class Timer {
+   constructor({onTick, startTime}){
+      this.intervalId = null,
+      this.isActive = false,
+      this.onTick = onTick;
+      this.startTime = startTime;
+      // this.init();
+   }
+
+   // init() {
+   //    const time = this.convertMs(0);
+   //    this.onTick(time);
+   // }
+
+   start() {
+      if (this.isActive) {
+         return;
+      }
+      // const startTime = this.startTime;
+      this.isActive = true;
+      this.intervalId = setInterval(() => {
+         const currentTime = Date.now();
+         const deltaTime = this.startTime - currentTime;
+         if (deltaTime < 0) {
+            clearInterval(this.intervalId);
+            this.isActive = false;
+            return;
+         }
+         const time = this.convertMs(deltaTime);
+         this.onTick(time);
+      }, 1000);
+   }
+
+   // stop() {
+   //    clearInterval(this.intervalId);
+   //    this.isActive = false;
+   //    const time = this.convertMs(0);
+   //    this.onTick(time);
+   // }
+
+
+
+   pad(value) {
+      return String(value).padStart(2, '0');
+   }
+
+   convertMs(ms) {
+      // Number of milliseconds per unit of time
+      const second = 1000;
+      const minute = second * 60;
+      const hour = minute * 60;
+      const day = hour * 24;
+
+      // Remaining days
+      const days = this.pad(Math.floor(ms / day));
+      // Remaining hours
+      const hours = this.pad(Math.floor((ms % day) / hour));
+      // Remaining minutes
+      const minutes = this.pad(Math.floor(((ms % day) % hour) / minute));
+      // Remaining seconds
+      const seconds = this.pad(Math.floor((((ms % day) % hour) % minute) / second));
+
+      return { days, hours, minutes, seconds };
+   }
+}
+
+// const timer = new Timer({
+//    onTick: updateClockFace,
+//    startTime: fp.selectedDates[0].getTime(),
+// });
+   
+
+
+// refs.stopBtn.addEventListener('click', timer.stop.bind(timer));
+
+function updateClockFace({ days, hours, minutes, seconds }) {
+   refs.spanDays.textContent = `${days}`;
+   refs.spanHours.textContent = `${hours}`;
+   refs.spanMinutes.textContent = `${minutes}`;
+   refs.spanSeconds.textContent = `${seconds}`;
+};
 
 // Notiflix.Notify.success('Sol lucet omnibus');
 // Notiflix.Notify.failure('Qui timide rogat docet negare');
 // Notiflix.Notify.warning('Memento te hominem esse');
 // Notiflix.Notify.info('Cogito ergo sum');
-
-function  convertMs(ms) {
-  // Number of milliseconds per unit of time
-  const second = 1000;
-  const minute = second * 60;
-  const hour = minute * 60;
-  const day = hour * 24;
-
-  // Remaining days
-  const days = Math.floor(ms / day);
-  // Remaining hours
-  const hours = Math.floor((ms % day) / hour);
-  // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute);
-  // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-  return { days, hours, minutes, seconds };
-}
-
-console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
