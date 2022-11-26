@@ -24,63 +24,48 @@ const options = {
      if (Date.now() >= selectedDates[0].getTime()) {
         Notiflix.Notify.failure("Please choose a date in the future");
      } else {
-            const timer = new Timer({
-               onTick: updateClockFace,
-               startTime: selectedDates[0].getTime(),
-            });
-        refs.startBtn.addEventListener('click', timer.start.bind(timer));
-        refs.stopBtn.addEventListener('click', timer.stop.bind(timer));
-
-        Notiflix.Notify.success('Таймер Запущено');
-        refs.startBtn.disabled = false;
-     }
+        // Кнопка стає активною.
+         refs.startBtn.disabled = false;
+   }
   },
 };
-
-flatpickr('#datetime-picker', options);
+const flatPick = flatpickr('#datetime-picker', options);
 
 class Timer {
-   constructor({onTick, startTime}){
+   constructor({ onTick, startTime }) {
       this.intervalId = null,
       this.isActive = false,
       this.onTick = onTick;
       this.startTime = startTime;
-      // this.init();
    }
-
-   // init() {
-   //    const time = this.convertMs(0);
-   //    this.onTick(time);
-   // }
 
    start() {
       if (this.isActive) {
          return;
       }
-      // const startTime = this.startTime;
-      this.isActive = true;
+      Notiflix.Notify.success('Таймер Запущено');
       this.intervalId = setInterval(() => {
          const currentTime = Date.now();
          const deltaTime = this.startTime - currentTime;
          if (deltaTime < 0) {
-            // clearInterval(this.intervalId);
-            // this.isActive = false;
+            clearInterval(this.intervalId);
+            this.isActive = false;
             this.stop();
             return;
          }
+
          const time = this.convertMs(deltaTime);
          this.onTick(time);
       }, 1000);
    }
 
    stop() {
+      Notiflix.Notify.success('DONE');
       clearInterval(this.intervalId);
       this.isActive = false;
       const time = this.convertMs(0);
       this.onTick(time);
    }
-
-
 
    pad(value) {
       return String(value).padStart(2, '0');
@@ -105,6 +90,16 @@ class Timer {
       return { days, hours, minutes, seconds };
    }
 }
+
+
+refs.startBtn.addEventListener('click', () => {
+   refs.startBtn.disabled = true;
+   const timer = new Timer({
+      onTick: updateClockFace,
+      startTime: flatPick.selectedDates[0].getTime(),
+   });
+   timer.start();
+});
 
 function updateClockFace({ days, hours, minutes, seconds }) {
    refs.spanDays.textContent = `${days}`;
