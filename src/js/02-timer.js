@@ -6,7 +6,6 @@ import Notiflix from 'notiflix';
 
 const refs = {
    startBtn: document.querySelector('button[data-start]'),
-   stopBtn: document.querySelector('button[data-end]'),
    spanDays: document.querySelector('span[data-days]'),
    spanHours: document.querySelector('span[data-hours]'),
    spanMinutes: document.querySelector('span[data-minutes]'),
